@@ -177,10 +177,10 @@ const AuthForm: React.FC<AuthFormProps> = ({ onAuthSuccess }) => {
         <div className="text-center mb-8">
           <Avatar className="w-16 h-16 mx-auto mb-4">
             <AvatarFallback className="bg-primary text-primary-foreground text-xl">
-              VK
+              Hi
             </AvatarFallback>
           </Avatar>
-          <h1 className="text-2xl font-bold text-foreground">VK Мессенджер</h1>
+          <h1 className="text-2xl font-bold text-foreground">Himo</h1>
           <p className="text-muted-foreground mt-2">
             Войдите или создайте новый аккаунт
           </p>
