@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -7,6 +7,16 @@ import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import Icon from '@/components/ui/icon';
+import AuthForm from '@/components/AuthForm';
+
+interface User {
+  id: string;
+  username: string;
+  email: string;
+  firstName: string;
+  lastName: string;
+  createdAt: Date;
+}
 
 interface Message {
   id: string;
@@ -28,9 +38,33 @@ interface Chat {
 }
 
 const Index = () => {
+  const [user, setUser] = useState<User | null>(null);
   const [activeSection, setActiveSection] = useState('chats');
   const [activeChat, setActiveChat] = useState<string | null>('1');
   const [messageText, setMessageText] = useState('');
+
+  // Проверяем авторизацию при загрузке
+  useEffect(() => {
+    const savedUser = localStorage.getItem('current_user');
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    }
+  }, []);
+
+  const handleAuthSuccess = (userData: User) => {
+    setUser(userData);
+    localStorage.setItem('current_user', JSON.stringify(userData));
+  };
+
+  const handleLogout = () => {
+    setUser(null);
+    localStorage.removeItem('current_user');
+  };
+
+  // Если пользователь не авторизован, показываем форму входа
+  if (!user) {
+    return <AuthForm onAuthSuccess={handleAuthSuccess} />;
+  }
   
   const [chats] = useState<Chat[]>([
     {
@@ -133,10 +167,31 @@ const Index = () => {
     <div className="h-screen bg-background dark flex">
       {/* Боковая панель навигации */}
       <div className="w-16 bg-card border-r border-border flex flex-col items-center py-4">
-        <div className="mb-8">
-          <Avatar className="w-8 h-8">
-            <AvatarFallback className="bg-primary text-primary-foreground">VK</AvatarFallback>
+        <div className="mb-8 group relative">
+          <Avatar className="w-8 h-8 cursor-pointer">
+            <AvatarFallback className="bg-primary text-primary-foreground text-sm">
+              {user.firstName[0]}{user.lastName[0]}
+            </AvatarFallback>
           </Avatar>
+          
+          {/* Меню пользователя */}
+          <div className="absolute left-full ml-2 top-0 bg-popover border border-border rounded-md py-2 px-3 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none group-hover:pointer-events-auto z-50 min-w-[200px]">
+            <div className="text-sm font-medium text-popover-foreground mb-1">
+              {user.firstName} {user.lastName}
+            </div>
+            <div className="text-xs text-muted-foreground mb-3">
+              @{user.username}
+            </div>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="w-full justify-start text-xs h-8"
+              onClick={handleLogout}
+            >
+              <Icon name="LogOut" size={14} className="mr-2" />
+              Выйти
+            </Button>
+          </div>
         </div>
         
         <div className="flex flex-col gap-3">
@@ -190,14 +245,16 @@ const Index = () => {
                   
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center justify-between mb-1">
-                      <span className="font-medium text-sm truncate">
-                        {chat.name}
+                      <div className="flex items-center truncate">
+                        <span className="font-medium text-sm truncate">
+                          {chat.name}
+                        </span>
                         {chat.type === 'bot' && (
                           <Badge variant="secondary" className="ml-2 text-xs">
                             БОТ
                           </Badge>
                         )}
-                      </span>
+                      </div>
                       <span className="text-xs text-muted-foreground">
                         {chat.timestamp}
                       </span>
